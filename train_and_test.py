@@ -42,21 +42,24 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
 
 def main():
     classes = ['8PSK', 'AM-DSB', 'AM-SSB', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK', 'WB-FM']
-    X_train = np.load('train_set.npy')
-    Y_train = np.load('train_label.npy')
-    X_test = np.load('test_set.npy')
-    Y_test = np.load('test_label.npy')
+    classes_d = ['8PSK', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK']
+    X_train = np.load('train_set_digital.npy')
+    Y_train = np.load('train_label_digital.npy')
+    X_test = np.load('test_set_digital.npy')
+    Y_test = np.load('test_label_digital.npy')
+    Z_train = np.load('train_snr_digital.npy')
+    Z_test = np.load('test_snr_digital.npy')
     
-    X_train_smallsize = X_train[0:10000]
-    Y_train_smallsize = Y_train[0:10000]
-    X_test_smallsize = X_test[0:10000]
-    Y_test_smallsize = Y_test[0:10000]
+
     
-    print(X_train_smallsize.shape)
-    in_shap = list(X_train_smallsize.shape[1:])
+    in_shap = list(X_train.shape[1:])
     
     dr = 0.5
     DNN_model = Sequential()
+    
+    
+    print(Z_train.shape)
+    
     # example
     #model = models.Sequential()
     #model.add(Reshape(in_shap+[1], input_shape=in_shap))
@@ -89,18 +92,18 @@ def main():
     
     
     
-    # self
+    # # self
     # shape: [N, 2, 128, 1]
     DNN_model.add(Reshape(in_shap+[1], input_shape=in_shap))
     
-    DNN_model.add(ZeroPadding2D((1,1)))
-    DNN_model.add(Conv2D(64, (1,3), data_format='channels_last',padding='valid', 
+    #DNN_model.add(ZeroPadding2D((2,2)))
+    DNN_model.add(Conv2D(128, (1,3), data_format='channels_last',padding='valid', 
                                 activation="relu", name="conv1", init='glorot_uniform'))
     #DNN_model.add(MaxPooling2D())
     DNN_model.add(Dropout(0.5))
     
-    DNN_model.add(ZeroPadding2D((1,1)))
-    DNN_model.add(Conv2D(16, (2,3), data_format='channels_last',padding='valid', 
+    #DNN_model.add(ZeroPadding2D((2,2)))
+    DNN_model.add(Conv2D(64, (2,3), data_format='channels_last',padding='valid', 
                          activation="relu", name="conv2", init='glorot_uniform'))
     #DNN_model.add(MaxPooling2D())
     DNN_model.add(Dropout(0.5))
@@ -127,7 +130,7 @@ def main():
                                verbose=0,
                                batch_size=1024)   
     
-    # Plot confusion matrix
+    #Plot confusion matrix
     test_Y_hat = DNN_model.predict(X_test, batch_size=1024)
     conf = np.zeros([len(classes),len(classes)])
     confnorm = np.zeros([len(classes),len(classes)])
