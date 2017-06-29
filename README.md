@@ -14,13 +14,15 @@ set_up_dataset.py :
   2. change it into 3 parts: (X: data), (Y: label) and (Z: SNR)
   3. randomly seperate these 3 parts into 2 part as the train-set and test-set
   4. save them
-  
+
+
 extract_digital_signal.py :
   mainly i am studying on digital modulation, so i throw the analog modulation signals
   1. start 2 processes by adopting python API(just for fun:) and trying to learning 
     about the multi-processing coding)
   2. (some processing...)
   3. save them
+
 
 train_and_test.py :
   the main file i use to study
