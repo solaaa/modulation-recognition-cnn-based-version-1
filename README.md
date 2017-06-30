@@ -18,9 +18,9 @@ set_up_dataset.py :
 
 extract_digital_signal.py :
   mainly i am studying on digital modulation, so i throw the analog modulation signals
-  1. start 2 processes by adopting python API(just for fun:) and trying to learning 
+  1. start 2 processes by adopting python API(just for fun:) and trying to learning 
     about the multi-processing coding)
-  2. (some processing...)
+  2. (some processing...)
   3. save them
 
 
