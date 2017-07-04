@@ -1,5 +1,16 @@
 
-#
+#    @article{convnetmodrec,
+#    title={Convolutional Radio Modulation Recognition Networks},
+#    author={O'Shea, Timothy J and Corgan, Johnathan and Clancy, T. Charles},
+#    journal={arXiv preprint arXiv:1602.04105},
+#    year={2016}
+#    }
+#    @article{rml_datasets,
+#    title={Radio Machine Learning Dataset Generation with GNU Radio},
+#    author={O'Shea, Timothy J and West, Nathan},
+#    journal={Proceedings of the 6th GNU Radio Conference},
+#    year={2016}
+#    }
 #    
 #    dataset from radioml.com (2016//10.a ver.)cannot be encoded under python 3.5
 #    here use cPickle(python 2.7), Numpy lib. to read and write it into data-stream(.npy) 
