@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.optimizers import SGD
-
+import h5py
 
 
 from keras.utils import np_utils
@@ -96,24 +96,24 @@ def main():
     # shape: [N, 2, 128, 1]
     DNN_model.add(Reshape(in_shap+[1], input_shape=in_shap))
     
-    #DNN_model.add(ZeroPadding2D((2,2)))
-    DNN_model.add(Conv2D(128, (1,3), data_format='channels_last',padding='valid', 
+    DNN_model.add(ZeroPadding2D((0,2)))
+    DNN_model.add(Conv2D(256, (1,3), data_format='channels_last',padding='valid', 
                                 activation="relu", name="conv1", init='glorot_uniform'))
     #DNN_model.add(MaxPooling2D())
     DNN_model.add(Dropout(0.5))
     
-    #DNN_model.add(ZeroPadding2D((2,2)))
-    DNN_model.add(Conv2D(64, (2,3), data_format='channels_last',padding='valid', 
+    DNN_model.add(ZeroPadding2D((0,2)))
+    DNN_model.add(Conv2D(80, (2,3), data_format='channels_last',padding='valid', 
                          activation="relu", name="conv2", init='glorot_uniform'))
     #DNN_model.add(MaxPooling2D())
     DNN_model.add(Dropout(0.5))
     
     DNN_model.add(Flatten())
     
-    DNN_model.add(Dense(128, activation='relu'))
+    DNN_model.add(Dense(256, activation='relu', init='he_normal'))
     DNN_model.add(Dropout(0.5))
     
-    DNN_model.add(Dense(len(classes), activation='softmax'))
+    DNN_model.add(Dense(len(classes), activation='softmax', init='he_normal'))
     DNN_model.add(Reshape([len(classes)]))
     
     #sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
@@ -144,6 +144,35 @@ def main():
     
     print("score: ")
     print(score)
+    DNN_model.save_weights('model_weights.h5')
     
+    snrs = [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+    acc = {}
+    for snr in snrs:
+    
+        # extract classes @ SNR
+        test_SNRs = Z_test
+        test_X_i = X_test[np.where(np.array(test_SNRs)==snr)]
+        test_Y_i = Y_test[np.where(np.array(test_SNRs)==snr)]    
+    
+        # estimate classes
+        test_Y_i_hat = DNN_model.predict(test_X_i)
+        conf = np.zeros([len(classes),len(classes)])
+        confnorm = np.zeros([len(classes),len(classes)])
+        for i in range(0,test_X_i.shape[0]):
+            j = list(test_Y_i[i,:]).index(1)
+            k = int(np.argmax(test_Y_i_hat[i,:]))
+            conf[j,k] = conf[j,k] + 1
+        for i in range(0,len(classes)):
+            confnorm[i,:] = conf[i,:] / np.sum(conf[i,:])
+        plt.figure()
+        plot_confusion_matrix(confnorm, labels=classes, title="ConvNet Confusion Matrix (SNR=%d)"%(snr))
+        
+        cor = np.sum(np.diag(conf))
+        ncor = np.sum(conf) - cor
+        print ("SNR: %d .Overall Accuracy: %f"%(snr ,cor / (cor+ncor)))
+        acc[snr] = 1.0*cor/(cor+ncor)    
+    
+        
 if __name__ == "__main__":
     main()

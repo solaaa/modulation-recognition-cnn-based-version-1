@@ -1,4 +1,5 @@
 % 对单个点计算估计值
+% cite: http://lib.csdn.net/article/machinelearning/35027
 function yHatPoint = lwlrPoint(point, xMat, yMat, k)
      [row , ~] = size(xMat);
      weights = zeros(row, row);

@@ -1,4 +1,5 @@
 % 对所有点计算估计值
+% cite: http://lib.csdn.net/article/machinelearning/35027
 function yHat = lwlr(testMat, xMat, yMat, k)
     [row, ~] = size(testMat);
     yHat = zeros(1, row);

@@ -1,5 +1,5 @@
 clear all
-source = load('.\data_sample_QPSK_SNRmixed.txt');
+source = load('.\data_sample_BPSK_SNRmixed.txt');
 data = cell(200,1);
 
 
@@ -9,7 +9,7 @@ data = cell(200,1);
 %
 
 iter = 1;
-SNR = 2;
+SNR = 8;
 
 for j=1:800
      if source(1+129*(j-1),2) == SNR
@@ -21,7 +21,7 @@ end
 % ÐÇ×ùÍ¼
 x = [];
 y = [];
-NUM = 5;
+NUM = 1;
 
 figure(1)
 x = [x; data{NUM}(1:end, 1)];
@@ -32,7 +32,8 @@ plot(x(1:8:end), y(1:8:end), 'r.');
 
 % IQÐòÁÐ
 figure(2)
-order = 0.15;
+order = predict_lwlr_factor(x,y);
+
 t = 0.1:0.1:12.8;
 subplot(2,1,1); 
 plot(t, x);hold on;
