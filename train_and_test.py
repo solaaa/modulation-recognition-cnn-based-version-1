@@ -34,7 +34,8 @@ from keras.utils import np_utils
 import keras.models as models
 from keras.layers.core import Reshape,Dense,Dropout,Activation,Flatten
 from keras.layers.noise import GaussianNoise
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, Conv2D
+from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, Conv2D, AveragePooling2D
+import keras
 from keras.regularizers import *
 from keras.optimizers import adam
 import os,random
@@ -54,9 +55,9 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
 def main():
     classes = ['8PSK', 'AM-DSB', 'AM-SSB', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK', 'WB-FM']
     classes_d = ['8PSK', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK']
-    X_train = np.load('train_set_digital.npy')
+    X_train = np.load('train_set_digital_wl.npy')
     Y_train = np.load('train_label_digital.npy')
-    X_test = np.load('test_set_digital.npy')
+    X_test = np.load('test_set_digital_wl.npy')
     Y_test = np.load('test_label_digital.npy')
     Z_train = np.load('train_snr_digital.npy')
     Z_test = np.load('test_snr_digital.npy')
@@ -71,52 +72,20 @@ def main():
     
     print(Z_train.shape)
     
-    # example
-    #model = models.Sequential()
-    #model.add(Reshape(in_shap+[1], input_shape=in_shap))
-    #model.add(ZeroPadding2D((0, 2)))
-    #model.add(Convolution2D(256, 1, 3, border_mode='valid', activation="relu", name="conv1", init='glorot_uniform'))
-    #model.add(Dropout(dr))
-    #model.add(ZeroPadding2D((0, 2)))
-    #model.add(Convolution2D(80, 2, 3, border_mode="valid", activation="relu", name="conv2", init='glorot_uniform'))
-    #model.add(Dropout(dr))
-    #model.add(Flatten())
-    #model.add(Dense(256, activation='relu', init='he_normal', name="dense1"))
-    #model.add(Dropout(dr))
-    #model.add(Dense( len(classes), init='he_normal', name="dense2" ))
-    #model.add(Activation('softmax'))
-    #model.add(Reshape([len(classes)]))
-    #model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
-    #model.summary()
-    # Set up some params 
-    #nb_epoch = 100     # number of epochs to train on
-    #batch_size = 1024  # training batch size
-    #history = model.fit(X_train,
-        #Y_train,
-        #batch_size=batch_size,
-        #nb_epoch=nb_epoch,
-        #verbose=2,
-        #validation_data=(X_test, Y_test))
-    
-    #score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
-    #print (score)    
-    
-    
-    
-    # # self
+
     # shape: [N, 2, 128, 1]
     DNN_model.add(Reshape(in_shap+[1], input_shape=in_shap))
     
     DNN_model.add(ZeroPadding2D((0,2)))
-    DNN_model.add(Conv2D(256, (1,3), data_format='channels_last',padding='valid', 
+    DNN_model.add(Conv2D(256, (1,8), data_format='channels_last',padding='valid', 
                                 activation="relu", name="conv1", init='glorot_uniform'))
-    #DNN_model.add(MaxPooling2D())
+    DNN_model.add(MaxPooling2D(pool_size = (1,4)))
     DNN_model.add(Dropout(0.5))
     
     DNN_model.add(ZeroPadding2D((0,2)))
     DNN_model.add(Conv2D(80, (2,3), data_format='channels_last',padding='valid', 
                          activation="relu", name="conv2", init='glorot_uniform'))
-    #DNN_model.add(MaxPooling2D())
+    DNN_model.add(MaxPooling2D(pool_size = (1,4)))
     DNN_model.add(Dropout(0.5))
     
     DNN_model.add(Flatten())
@@ -128,6 +97,7 @@ def main():
     DNN_model.add(Reshape([len(classes)]))
     
     #sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    #DNN_model.load_weights('model_weights_fit2.h5')
     DNN_model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
                   metrics=['accuracy'])
@@ -155,7 +125,7 @@ def main():
     
     print("score: ")
     print(score)
-    DNN_model.save_weights('model_weights.h5')
+    DNN_model.save_weights('model_weights_f_wl1.h5')
     
     snrs = [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
     acc = {}

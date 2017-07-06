@@ -1,5 +1,5 @@
 clear all
-source = load('.\data_sample_BPSK_SNRmixed.txt');
+source = load('.\data_sample_QPSK_SNRmixed.txt');
 data = cell(200,1);
 
 
@@ -21,11 +21,11 @@ end
 % ÐÇ×ùÍ¼
 x = [];
 y = [];
-NUM = 1;
-
-figure(1)
+NUM = 1 ;
 x = [x; data{NUM}(1:end, 1)];
 y = [y; data{NUM}(1:end, 2)];
+
+figure(1)
 plot(x, y);
 hold on;
 plot(x(1:8:end), y(1:8:end), 'r.');
@@ -46,7 +46,10 @@ plot(t, y);hold on;
 y2 = lwlr(t', t', y, order);
 plot(t, y2, 'r');
 
-
+% figure(6)
+% z = x + y*1i;
+% f = fft(z);
+% plot(f)
 % ÄâºÏºóµÄÐÇ×ùÍ¼
 figure(4)
 plot(x2, y2);
