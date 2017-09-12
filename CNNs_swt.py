@@ -1,26 +1,22 @@
-
+'''
 #    @article{convnetmodrec,
 #    title={Convolutional Radio Modulation Recognition Networks},
 #    author={O'Shea, Timothy J and Corgan, Johnathan and Clancy, T. Charles},
 #    journal={arXiv preprint arXiv:1602.04105},
 #    year={2016}
 #    }
-#    @article{rml_datasets,
-#    title={Radio Machine Learning Dataset Generation with GNU Radio},
-#    author={O'Shea, Timothy J and West, Nathan},
-#    journal={Proceedings of the 6th GNU Radio Conference},
-#    year={2016}
-#    }
-#    
-#    dataset from radioml.com (2016//10.a ver.)cannot be encoded under python 3.5
-#    here use cPickle(python 2.7), Numpy lib. to read and write it into data-stream(.npy) 
 #
-#    X_train, X_test dataset is 3-D Tensor(ndarray) with the shape of (110000,2,128): 110000 samples, 2-d(I and Q), 128 dots per sample.
-#    this set includes 11 modulation ways(8d 3a).  
-#    label set(Y_train, Y_test) consist of (11-D) (0-1) vectors.
+#    X_train, X_test dataset is 3-D Tensor(ndarray) with the shape of (50000, 2, #dots#): 
+#     50000 samples, 2-d(I and Q), X dots per sample.
+#    this set includes 5 modulation .  
+#    label set(Y_train, Y_test) consist of (5-D) (0-1) vectors.
 #    Class: 
-#         ['8PSK', 'AM-DSB', 'AM-SSB', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK', 'WB-FM']
+#         ['BPSK', 'QPSK', '8PSK', 'QAM16', 'QAM64']
 #
+     here, i utilize a pre-treatment method(swt denoising) to try denoising the signals, 
+     and design a CNN based on the article cited above, also, adding the max-pooling layers.
+'''
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,14 +49,18 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
     plt.show()
 
 def main():
-    classes = ['8PSK', 'AM-DSB', 'AM-SSB', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK', 'WB-FM']
-    classes_d = ['8PSK', 'BPSK', 'CPFSK', 'GFSK', 'PAM4', 'QAM16', 'QAM64', 'QPSK']
-    X_train = np.load('train_set_digital_wl.npy')
-    Y_train = np.load('train_label_digital.npy')
-    X_test = np.load('test_set_digital_wl.npy')
-    Y_test = np.load('test_label_digital.npy')
-    Z_train = np.load('train_snr_digital.npy')
-    Z_test = np.load('test_snr_digital.npy')
+    classes = ['BPSK', 'QPSK', '8PSK', 'QAM16', 'QAM64']
+
+    #X_train = np.load('train_set_swt_lv1.npy')
+    #X_test = np.load('test_set_swt_lv1.npy')
+    
+    X_train = np.load('train_set.npy')
+    X_test = np.load('test_set.npy')  
+    
+    Y_train = np.load('train_label.npy')
+    Y_test = np.load('test_label.npy')
+    Z_train = np.load('train_snr.npy')
+    Z_test = np.load('test_snr.npy')
     
 
     
@@ -69,24 +69,23 @@ def main():
     dr = 0.5
     DNN_model = Sequential()
     
-    
-    print(Z_train.shape)
+    print(in_shap)
     
 
     # shape: [N, 2, 128, 1]
     DNN_model.add(Reshape(in_shap+[1], input_shape=in_shap))
     
     DNN_model.add(ZeroPadding2D((0,2)))
-    DNN_model.add(Conv2D(256, (1,8), data_format='channels_last',padding='valid', 
+    DNN_model.add(Conv2D(256, (1,4),strides= 1, data_format='channels_last',padding='valid', 
                                 activation="relu", name="conv1", init='glorot_uniform'))
-    DNN_model.add(MaxPooling2D(pool_size = (1,4)))
+    DNN_model.add(MaxPooling2D(pool_size = (1,2)))
     DNN_model.add(Dropout(0.5))
     
     DNN_model.add(ZeroPadding2D((0,2)))
-    DNN_model.add(Conv2D(80, (2,3), data_format='channels_last',padding='valid', 
+    DNN_model.add(Conv2D(128, (2,3), strides= 1, data_format='channels_last',padding='valid', 
                          activation="relu", name="conv2", init='glorot_uniform'))
-    DNN_model.add(MaxPooling2D(pool_size = (1,4)))
-    DNN_model.add(Dropout(0.5))
+    #DNN_model.add(AveragePooling2D(pool_size = (1,2)))
+    DNN_model.add(Dropout(0.5)) 
     
     DNN_model.add(Flatten())
     
@@ -97,22 +96,26 @@ def main():
     DNN_model.add(Reshape([len(classes)]))
     
     #sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-    #DNN_model.load_weights('model_weights_fit2.h5')
+    #DNN_model.load_weights('model_weights_f_swt_lv2.h5')
     DNN_model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
                   metrics=['accuracy'])
     
     history = DNN_model.fit(X_train, Y_train,
               epochs=100,
-              batch_size=1024,
+              batch_size=150,
               verbose=2,
-              validation_data=(X_test, Y_test))
+              validation_data=None)
+              #validation_data=(X_test, Y_test))
+    
+
+    
     score = DNN_model.evaluate(X_test, Y_test, 
                                verbose=0,
-                               batch_size=1024)   
+                               batch_size=256)   
     
     #Plot confusion matrix
-    test_Y_hat = DNN_model.predict(X_test, batch_size=1024)
+    test_Y_hat = DNN_model.predict(X_test, batch_size=150)
     conf = np.zeros([len(classes),len(classes)])
     confnorm = np.zeros([len(classes),len(classes)])
     for i in range(0,X_test.shape[0]):
@@ -125,9 +128,9 @@ def main():
     
     print("score: ")
     print(score)
-    DNN_model.save_weights('model_weights_f_wl1.h5')
+    DNN_model.save_weights('model_weights_f_swt1.h5')
     
-    snrs = [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+    snrs = [-20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16]
     acc = {}
     for snr in snrs:
     
